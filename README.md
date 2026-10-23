@@ -10,7 +10,7 @@ prompts you typed into all three.
 ## Install in Antigravity
 
 ```
-agy plugin install <path-to-krascha>
+agy plugin install https://github.com/shanep/krascha
 ```
 
 Or from a local checkout:
@@ -25,7 +25,7 @@ Then in an Antigravity session, ask for Krascha's verdict:
 /krascha
 ```
 
-To update in Antigravity, run `agy plugin install krascha` (or reinstall from your checkout).
+To update in Antigravity, run `agy plugin install https://github.com/shanep/krascha` (or reinstall from your checkout).
 
 ## Install in Claude Code
 
@@ -94,7 +94,7 @@ checkout without either tool.
 ## The leaderboard
 
 `upload` sends your counts, rank, achievements and how many times you earned
-each, average tokens a day, which of Claude Code, Copilot CLI, and Antigravity you typed
+each, average Claude Code tokens a day, which of Claude Code, Copilot CLI, and Antigravity you typed
 into, how many times you typed the same kind or mean prompt past 10 in a day,
 the name you pick and a random id for the machine. It never sends your prompts. The board tags each name with
 the tools it uses, from every machine that uploads to it.

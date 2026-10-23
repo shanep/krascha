@@ -95,6 +95,10 @@ interface Refreshed {
 }
 
 function sessionTool(index: ReputationIndex, sessionId: string): ToolId {
+  const tool = index.sessions.get(sessionId)?.tool;
+  if (tool !== undefined) {
+    return tool;
+  }
   for (const [id, prompt] of index.prompts) {
     if (prompt.sessionId === sessionId) {
       return toolOf(id);
@@ -121,11 +125,10 @@ async function refresh(io: CliIo): Promise<Refreshed> {
   const usage = await loadUsage(claude);
   const copilot = indexUsage(index, (sessionId) => sessionTool(index, sessionId) === 'copilot');
   const antigravity = indexUsage(index, (sessionId) => sessionTool(index, sessionId) === 'antigravity');
-  const claudeTokensPerDay = averageTokensPerDay(usage.days, now, usage.through);
   const antigravityTokensPerDay = averageTokensPerDay(antigravity, now);
   const copilotTokensPerDay = averageTokensPerDay(copilot, now);
   const tokens = {
-    tokensPerDay: claudeTokensPerDay > 0 ? claudeTokensPerDay : antigravityTokensPerDay,
+    tokensPerDay: averageTokensPerDay(usage.days, now, usage.through),
     lifetimeTokens: usage.lifetimeTokens,
     copilotTokensPerDay,
     copilotLifetimeTokens: totalTokens(copilot),

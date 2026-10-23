@@ -220,6 +220,40 @@ describe('krascha', () => {
     });
   });
 
+  it('counts tokens from an Antigravity session with only slash commands under Antigravity, not Copilot', async () => {
+    const home = await makeHome();
+    const gSession = path.join(home.root, '.gemini', 'antigravity-cli', 'brain', 'ag-slash');
+    const logs = path.join(gSession, '.system_generated', 'logs');
+    await mkdir(logs, { recursive: true });
+    const lines = [
+      JSON.stringify({
+        step_index: 0,
+        source: 'USER_EXPLICIT',
+        type: 'USER_INPUT',
+        created_at: '2026-10-03T12:05:00.000Z',
+        content: '<USER_REQUEST>\n/model gemini-pro\n</USER_REQUEST>',
+      }),
+      JSON.stringify({
+        step_index: 1,
+        source: 'MODEL',
+        type: 'PLANNER_RESPONSE',
+        created_at: '2026-10-03T12:05:10.000Z',
+        input_tokens: 15_000,
+        cache_read_tokens: 5000,
+        output_tokens: 200,
+      }),
+    ];
+    await writeFile(path.join(logs, 'transcript.jsonl'), `${lines.join('\n')}\n`);
+    const { code, out } = await home.run('json');
+    expect(code).toBe(0);
+    const report: unknown = JSON.parse(out);
+    expect(report).toMatchObject({
+      prompts: 3,
+      antigravityLifetimeTokens: 20_200,
+      copilotLifetimeTokens: 0,
+    });
+  });
+
   it('imports another index without counting a prompt twice', async () => {
     const home = await makeHome();
     const old = emptyIndex();
@@ -385,7 +419,7 @@ describe('krascha', () => {
       selfUpdate,
       ['claude', 'plugin', 'update', 'krascha@shanep'],
       ['copilot', 'plugin', 'update', 'krascha@shanep'],
-      ['agy', 'plugin', 'install', 'krascha'],
+      ['agy', 'plugin', 'install', 'https://github.com/shanep/krascha'],
     ]);
     // The copy is there, so a later check has nothing to download.
     home.use({ now: Date.parse('2026-10-04T12:00:00.000Z') });

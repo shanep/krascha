@@ -97,6 +97,10 @@ export function antigravityUsage(
   if (Reflect.get(parsed, 'type') !== 'PLANNER_RESPONSE') {
     return null;
   }
+  // In Antigravity transcripts, input_tokens is only the uncached prompt tokens,
+  // while cache_read_tokens is the cached prompt tokens. They do not overlap
+  // (input_tokens can be smaller than cache_read_tokens), so both must be added
+  // to get the total prompt tokens.
   const inputTokens = Reflect.get(parsed, 'input_tokens');
   const cacheReadTokens = Reflect.get(parsed, 'cache_read_tokens');
   const outputTokens = Reflect.get(parsed, 'output_tokens');
@@ -215,6 +219,7 @@ export function antigravityUserPrompts(geminiDir: string): UserPrompts {
               stamp,
               kind: 'transcript',
               sessionId: entry.name,
+              tool: 'antigravity',
             });
           }
         }
