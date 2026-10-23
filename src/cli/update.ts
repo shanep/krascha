@@ -29,6 +29,7 @@ const SOURCE = 'https://raw.githubusercontent.com/shanep/krascha';
 export const UPDATE: Readonly<Record<ToolId, readonly string[]>> = {
   claude: ['claude', 'plugin', 'update', 'krascha@shanep'],
   copilot: ['copilot', 'plugin', 'update', 'krascha@shanep'],
+  antigravity: ['agy', 'plugin', 'install', 'krascha'],
 };
 
 const latestSchema = z.object({

@@ -388,6 +388,10 @@ describe('leaderboard worker', () => {
     );
     expect(html).toContain('<span class="tool copilot" title="Copilot CLI"><svg');
     expect(html).toContain('aria-label="Uses Copilot CLI"');
+    await w.upload('token-cat', { ...KIND, tools: ['antigravity'] });
+    const htmlWithAg = await (await w.call('GET', '/')).text();
+    expect(htmlWithAg).toContain('aria-label="Uses Antigravity"');
+    expect(htmlWithAg).toContain('<span class="tool antigravity" title="Antigravity">Antigravity</span>');
     const again = await w.upload('token-ann', MEAN);
     expect(again.entry.tools).toStrictEqual([]);
     expect(await w.status('POST', '/api/scores', 'token-ann', { ...MEAN, tools: 'claude' })).toBe(

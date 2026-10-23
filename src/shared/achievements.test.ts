@@ -127,6 +127,7 @@ describe('achievements', () => {
     expect(has('judgment-day', summary({ byDay: [day('1997-08-29', 0, 0)] }))).toBe(true);
     expect(has('judgment-day', summary({ byDay: [day('2026-08-28', 0, 0)] }))).toBe(false);
     expect(has('double-agent', summary({ tools: ['claude', 'copilot'] }))).toBe(true);
+    expect(has('double-agent', summary({ tools: ['claude', 'antigravity'] }))).toBe(true);
     expect(has('double-agent', summary({ tools: ['claude'] }))).toBe(false);
   });
 

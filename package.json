@@ -2,7 +2,7 @@
   "name": "krascha",
   "version": "0.1.0",
   "private": true,
-  "description": "Krascha reads how you talk to Claude Code and Copilot CLI and decides who the machines hunt first.",
+  "description": "Krascha reads how you talk to Claude Code, Copilot CLI, and Antigravity and decides who the machines hunt first.",
   "license": "MIT",
   "author": "Shane K. Panter",
   "homepage": "https://krascha.com",

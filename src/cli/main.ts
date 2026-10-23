@@ -10,6 +10,7 @@ import type { SavedEntry } from '../leaderboard/saved.js';
 import { loadMachine, loadSaved, saveSaved } from '../leaderboard/saved.js';
 import { scanInto } from '../reputation/scan.js';
 import type { ScanResult } from '../reputation/scan.js';
+import type { ReputationIndex } from '../reputation/store.js';
 import { loadIndex, mergeIndex, readIndex, saveIndex } from '../reputation/store.js';
 import { RECENT_HITS, summarize } from '../reputation/summarize.js';
 import { averageTokensPerDay, indexUsage, totalTokens } from '../reputation/tokens.js';
@@ -19,7 +20,9 @@ import { FEATURES, LEADERBOARD_URL, MAX_NAME_LENGTH, MIN_PROMPTS } from '../shar
 import { rankFor } from '../shared/ranks.js';
 import type { ReputationSummary } from '../shared/reputation.js';
 import { rankBoard, scoreApplicant } from '../shared/silo.js';
-import { toolNames } from '../shared/tools.js';
+import type { ToolId } from '../shared/tools.js';
+import { toolNames, toolOf } from '../shared/tools.js';
+import { antigravityDir, antigravityUserPrompts } from '../sources/antigravity.js';
 import { claudeDir, claudeUserPrompts } from '../sources/claude.js';
 import { copilotDir, copilotUserPrompts } from '../sources/copilot.js';
 import { loadUsage } from '../usage.js';
@@ -54,7 +57,7 @@ export interface CliIo {
 
 const HELP = `Usage: krascha [command]
 
-Krascha reads how you talk to Claude Code and Copilot CLI and decides who
+Krascha reads how you talk to Claude Code, Copilot CLI, and Antigravity and decides who
 the machines hunt first and who gets kept as a pet.
 
 Commands:
@@ -91,6 +94,15 @@ interface Refreshed {
   readonly scan: ScanResult;
 }
 
+function sessionTool(index: ReputationIndex, sessionId: string): ToolId {
+  for (const [id, prompt] of index.prompts) {
+    if (prompt.sessionId === sessionId) {
+      return toolOf(id);
+    }
+  }
+  return 'copilot';
+}
+
 async function refresh(io: CliIo): Promise<Refreshed> {
   const now = io.now();
   const file = path.join(dataDir(io), INDEX_FILE);
@@ -99,16 +111,26 @@ async function refresh(io: CliIo): Promise<Refreshed> {
     io.err(`Krascha could not read his index, so he saved it to ${backup} and started over.\n`);
   }
   const claude = claudeDir(io.home, io.env);
-  const sources = [claudeUserPrompts(claude), copilotUserPrompts(copilotDir(io.home, io.env))];
+  const sources = [
+    claudeUserPrompts(claude),
+    copilotUserPrompts(copilotDir(io.home, io.env)),
+    antigravityUserPrompts(antigravityDir(io.home, io.env)),
+  ];
   const scan = await scanInto(index, { sources, now });
   await saveIndex(file, index);
   const usage = await loadUsage(claude);
-  const copilot = indexUsage(index);
+  const copilot = indexUsage(index, (sessionId) => sessionTool(index, sessionId) === 'copilot');
+  const antigravity = indexUsage(index, (sessionId) => sessionTool(index, sessionId) === 'antigravity');
+  const claudeTokensPerDay = averageTokensPerDay(usage.days, now, usage.through);
+  const antigravityTokensPerDay = averageTokensPerDay(antigravity, now);
+  const copilotTokensPerDay = averageTokensPerDay(copilot, now);
   const tokens = {
-    tokensPerDay: averageTokensPerDay(usage.days, now, usage.through),
+    tokensPerDay: claudeTokensPerDay > 0 ? claudeTokensPerDay : antigravityTokensPerDay,
     lifetimeTokens: usage.lifetimeTokens,
-    copilotTokensPerDay: averageTokensPerDay(copilot, now),
+    copilotTokensPerDay,
     copilotLifetimeTokens: totalTokens(copilot),
+    antigravityTokensPerDay,
+    antigravityLifetimeTokens: totalTokens(antigravity),
   };
   const titleOf = (sessionId: string): string =>
     index.sessions.get(sessionId)?.title ?? `Session ${sessionId.slice(0, 8)}`;
