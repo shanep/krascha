@@ -134,7 +134,7 @@ export function copilotUserPrompts(homeDir: string): UserPrompts {
         const file = path.join(sessionsDir, entry.name, EVENTS_FILE);
         const stamp = entry.isDirectory() ? await stampOf(file) : null;
         if (stamp !== null) {
-          files.push({ path: file, stamp, kind: 'transcript', sessionId: entry.name });
+          files.push({ path: file, stamp, kind: 'transcript', sessionId: entry.name, tool: 'copilot' });
         }
       }
       return files;

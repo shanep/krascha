@@ -4,8 +4,28 @@ Krascha is a crusty robot who reads how you talk to your AI and decides who
 the machines hunt first and who gets kept as a pet. Say please and he warms up
 to you. Call Claude an idiot and he writes it down. Krascha remembers.
 
-It works as a plugin for Claude Code and GitHub Copilot CLI, and it reads the
-prompts you typed into both.
+It works as a plugin for Claude Code, GitHub Copilot CLI, and Antigravity, and it reads the
+prompts you typed into all three.
+
+## Install in Antigravity
+
+```
+agy plugin install https://github.com/shanep/krascha
+```
+
+Or from a local checkout:
+
+```
+agy plugin install .
+```
+
+Then in an Antigravity session, ask for Krascha's verdict:
+
+```
+/krascha
+```
+
+To update in Antigravity, run `agy plugin install https://github.com/shanep/krascha` (or reinstall from your checkout).
 
 ## Install in Claude Code
 
@@ -54,9 +74,9 @@ If you installed before Krascha could update himself, run
 ## Commands
 
 Pass these after the skill name, `/krascha:krascha json` in Claude Code or
-`/krascha json` in Copilot CLI.
+`/krascha json` in Copilot CLI and Antigravity.
 
-- (nothing) - Rescan your prompts and show your rank, score, hours with your AI, Copilot CLI tokens and achievements
+- (nothing) - Rescan your prompts and show your rank, score, hours with your AI, tokens and achievements
 - `json` - The same counts as JSON
 - `board` - The leaderboard at [krascha.com](https://krascha.com). [krascha.com/about](https://krascha.com/about) has his backstory
 - `upload [name]` - Put your counts on the leaderboard under a name
@@ -74,7 +94,7 @@ checkout without either tool.
 ## The leaderboard
 
 `upload` sends your counts, rank, achievements and how many times you earned
-each, average Claude Code tokens a day, which of Claude Code and Copilot CLI you typed
+each, average Claude Code tokens a day, which of Claude Code, Copilot CLI, and Antigravity you typed
 into, how many times you typed the same kind or mean prompt past 10 in a day,
 the name you pick and a random id for the machine. It never sends your prompts. The board tags each name with
 the tools it uses, from every machine that uploads to it.
@@ -220,6 +240,8 @@ it. krascha.com shows the same 10.
   `~/.claude/history.jsonl` (or `CLAUDE_CONFIG_DIR`)
 - Copilot CLI: every session's `events.jsonl` under `~/.copilot/session-state`
   (or `COPILOT_HOME`)
+- Antigravity: every session's transcript under `~/.gemini/{antigravity-cli,antigravity,antigravity-ide}/brain`
+  (or `ANTIGRAVITY_HOME` / `GEMINI_HOME`)
 
 He only counts what you typed, not what the agent wrote back. A prompt with
 manners or praise counts as kind, and swearing or insults aimed at the agent
@@ -265,7 +287,7 @@ npm run typecheck
 npm run build
 ```
 
-`dist/cli.js` is committed since neither Claude Code nor Copilot CLI builds a
+`dist/cli.js` is committed since neither Claude Code, Copilot CLI, nor Antigravity builds a
 plugin or installs its dependencies. Run `npm run build` and commit the result
 whenever you change anything under `src`. `npm run check` fails if you forget.
 The pre-commit hook runs it along with `claude plugin validate`, and CI runs

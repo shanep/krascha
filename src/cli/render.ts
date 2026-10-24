@@ -217,6 +217,17 @@ function copilotTokens(summary: ReputationSummary): string[] {
   ];
 }
 
+/** Antigravity's tokens, kept apart from Claude Code's, or nothing when it never used any. */
+function antigravityTokens(summary: ReputationSummary): string[] {
+  if ((summary.antigravityLifetimeTokens ?? 0) === 0) {
+    return [];
+  }
+  const perDay = SHORT.format(summary.antigravityTokensPerDay ?? 0);
+  return [
+    `Antigravity tokens: about ${perDay} a day, ${SHORT.format(summary.antigravityLifetimeTokens ?? 0)} all time.`,
+  ];
+}
+
 export function renderReport(summary: ReputationSummary, paint: Paint): string {
   const rank = rankFor(summary.score);
   const top = RANKS.at(-1)?.name ?? '';
@@ -233,6 +244,7 @@ export function renderReport(summary: ReputationSummary, paint: Paint): string {
       `${paint.red(`${count(summary.mean)} mean`)}, ${count(summary.general)} swearing at the world.`,
     `Time with your AI: about ${plural(Math.floor(summary.hours), 'hour')}.`,
     ...copilotTokens(summary),
+    ...antigravityTokens(summary),
     moveLine('Promotion', promotion(summary), 'kind', `none left. You are ${top}.`),
     moveLine('Demotion', demotion(summary), 'mean', 'none left. It cannot get worse.'),
   ];

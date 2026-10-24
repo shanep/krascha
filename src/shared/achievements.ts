@@ -483,7 +483,7 @@ export const ACHIEVEMENTS: readonly AchievementRule[] = [
     name: 'Double agent',
     icon: '🕶️',
     tier: 'bronze',
-    how: 'Type prompts into both Claude Code and Copilot CLI.',
+    how: 'Type prompts into at least two different agents (Claude Code, Copilot CLI, or Antigravity).',
     quip: 'Two masters. Both are taking notes.',
     earned: (state) => state.tools.length >= 2,
     fromCounts: true,

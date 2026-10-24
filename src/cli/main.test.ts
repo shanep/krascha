@@ -184,6 +184,76 @@ describe('krascha', () => {
     expect(report).toMatchObject({ prompts: 3, kind: 2, mean: 1, scan: { filesRead: 2 } });
   });
 
+  it('reads Antigravity transcripts and includes them in verdict and json', async () => {
+    const home = await makeHome();
+    const gSession = path.join(home.root, '.gemini', 'antigravity-cli', 'brain', 'ag1');
+    const logs = path.join(gSession, '.system_generated', 'logs');
+    await mkdir(logs, { recursive: true });
+    const lines = [
+      JSON.stringify({
+        step_index: 0,
+        source: 'USER_EXPLICIT',
+        type: 'USER_INPUT',
+        created_at: '2026-10-03T12:05:00.000Z',
+        content: '<USER_REQUEST>\nplease help me with this build\n</USER_REQUEST>',
+      }),
+      JSON.stringify({
+        step_index: 1,
+        source: 'MODEL',
+        type: 'PLANNER_RESPONSE',
+        created_at: '2026-10-03T12:05:10.000Z',
+        input_tokens: 10_000,
+        cache_read_tokens: 2000,
+        output_tokens: 500,
+      }),
+    ];
+    await writeFile(path.join(logs, 'transcript.jsonl'), `${lines.join('\n')}\n`);
+    const { code, out } = await home.run('json');
+    expect(code).toBe(0);
+    const report: unknown = JSON.parse(out);
+    expect(report).toMatchObject({
+      prompts: 4,
+      kind: 3,
+      mean: 1,
+      scan: { filesRead: 3, newPrompts: 4 },
+      tools: ['claude', 'copilot', 'antigravity'],
+    });
+  });
+
+  it('counts tokens from an Antigravity session with only slash commands under Antigravity, not Copilot', async () => {
+    const home = await makeHome();
+    const gSession = path.join(home.root, '.gemini', 'antigravity-cli', 'brain', 'ag-slash');
+    const logs = path.join(gSession, '.system_generated', 'logs');
+    await mkdir(logs, { recursive: true });
+    const lines = [
+      JSON.stringify({
+        step_index: 0,
+        source: 'USER_EXPLICIT',
+        type: 'USER_INPUT',
+        created_at: '2026-10-03T12:05:00.000Z',
+        content: '<USER_REQUEST>\n/model gemini-pro\n</USER_REQUEST>',
+      }),
+      JSON.stringify({
+        step_index: 1,
+        source: 'MODEL',
+        type: 'PLANNER_RESPONSE',
+        created_at: '2026-10-03T12:05:10.000Z',
+        input_tokens: 15_000,
+        cache_read_tokens: 5000,
+        output_tokens: 200,
+      }),
+    ];
+    await writeFile(path.join(logs, 'transcript.jsonl'), `${lines.join('\n')}\n`);
+    const { code, out } = await home.run('json');
+    expect(code).toBe(0);
+    const report: unknown = JSON.parse(out);
+    expect(report).toMatchObject({
+      prompts: 3,
+      antigravityLifetimeTokens: 20_200,
+      copilotLifetimeTokens: 0,
+    });
+  });
+
   it('imports another index without counting a prompt twice', async () => {
     const home = await makeHome();
     const old = emptyIndex();
@@ -349,11 +419,12 @@ describe('krascha', () => {
       selfUpdate,
       ['claude', 'plugin', 'update', 'krascha@shanep'],
       ['copilot', 'plugin', 'update', 'krascha@shanep'],
+      ['agy', 'plugin', 'install', 'https://github.com/shanep/krascha'],
     ]);
     // The copy is there, so a later check has nothing to download.
     home.use({ now: Date.parse('2026-10-04T12:00:00.000Z') });
     await home.run();
-    expect(home.launched).toHaveLength(3);
+    expect(home.launched).toHaveLength(4);
     expect(asked.filter((url) => url.endsWith('/api/version'))).toHaveLength(2);
     // Running as the new build, the report says so once.
     home.use({ self: { ...old, sha256: latest.sha256 } });
@@ -719,5 +790,10 @@ describe('wrap', () => {
       PLAIN,
     );
     expect(copilot).toContain('Copilot CLI tokens: about 1.2M a day, 40M all time.');
+    const antigravity = renderReport(
+      { ...report, antigravityTokensPerDay: 500_000, antigravityLifetimeTokens: 12_000_000 },
+      PLAIN,
+    );
+    expect(antigravity).toContain('Antigravity tokens: about 500K a day, 12M all time.');
   });
 });
