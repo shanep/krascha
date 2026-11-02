@@ -33,7 +33,7 @@ import {
   renderRanks,
 } from './page.js';
 import type { D1Database, Owner } from './store.js';
-import { likeEntry, readBoard, removeScore, saveScore, utcDay } from './store.js';
+import { cleanName, likeEntry, readBoard, removeScore, saveScore, utcDay } from './store.js';
 
 export interface Env {
   readonly DB: D1Database;
@@ -285,6 +285,12 @@ async function upload(request: Request, env: Env, deps: Deps): Promise<Response>
     return fail(
       429,
       `Only ${String(NEW_ENTRIES_PER_DAY)} new entries without GitHub can come from one network a day. Try again tomorrow (UTC), or upload with gh signed in.`,
+    );
+  }
+  if (!saved.ok && saved.reason === 'name-taken') {
+    return fail(
+      409,
+      `Someone checked with GitHub is on the board as ${cleanName(name)}. Pick another name, or upload with gh signed in if that is you.`,
     );
   }
   if (!saved.ok) {

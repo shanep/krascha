@@ -573,6 +573,23 @@ describe('leaderboard worker', () => {
     expect(await w.board()).toMatchObject({ total: 0 });
   });
 
+  it('keeps entries without GitHub from using the name of one checked with it', async () => {
+    const w = world();
+    await w.upload('token-ann', { ...MEAN, name: 'Annie' });
+    const key = { authorization: `Key ${'a'.repeat(40)}`, 'cf-connecting-ip': '10.0.0.1' };
+    for (const name of ['ann', ' ANNIE ']) {
+      const taken = await w.raw('POST', '/api/scores', key, { ...KIND, name });
+      expect(taken.status).toBe(409);
+      expect(await taken.json()).toMatchObject({
+        error: expect.stringContaining(`as ${name.trim()}.`),
+      });
+    }
+    expect(await w.board()).toMatchObject({ total: 1 });
+    expect((await w.raw('POST', '/api/scores', key, KIND)).status).toBe(201);
+    // The owner checked with GitHub can still use their own name.
+    expect(await w.status('POST', '/api/scores', 'token-ann', { ...MEAN, name: 'ann' })).toBe(201);
+  });
+
   it('caps new unverified entries per network per UTC day', async () => {
     const w = world();
     const from = (id: string, ip: string) => ({
@@ -587,7 +604,7 @@ describe('leaderboard worker', () => {
     expect(await capped.json()).toMatchObject({ error: expect.stringContaining('gh signed in') });
     expect((await w.raw('POST', '/api/scores', from('a', '10.0.0.1'), KIND)).status).toBe(201);
     expect((await w.raw('POST', '/api/scores', from('d', '10.0.0.2'), MEAN)).status).toBe(201);
-    expect(await w.status('POST', '/api/scores', 'token-ann', MEAN)).toBe(201);
+    expect(await w.status('POST', '/api/scores', 'token-bob', KIND)).toBe(201);
     w.setNow(START + DAY);
     expect((await w.raw('POST', '/api/scores', from('e', '10.0.0.1'), MEAN)).status).toBe(201);
   });
@@ -712,7 +729,7 @@ describe('leaderboard worker', () => {
       'first-strike',
     ]);
     const key = { authorization: `Key ${'k'.repeat(40)}`, 'cf-connecting-ip': '10.0.0.1' };
-    const keyed = (await (await w.raw('POST', '/api/scores', key, claim)).json()) as Standing;
+    const keyed = (await (await w.raw('POST', '/api/scores', key, { ...claim, name: 'Kim' })).json()) as Standing;
     expect(earned(keyed.entry.achievements)).toStrictEqual(['first-strike']);
     for (const machine of ['m', 'n']) {
       await w.upload('token-bob', { ...claim, machine: machine.repeat(43) });
@@ -831,7 +848,7 @@ describe('leaderboard worker', () => {
       'manners',
     ]);
     const key = { authorization: `Key ${'k'.repeat(40)}`, 'cf-connecting-ip': '10.0.0.1' };
-    const keyed = (await (await w.raw('POST', '/api/scores', key, claim)).json()) as Standing;
+    const keyed = (await (await w.raw('POST', '/api/scores', key, { ...claim, name: 'Kim' })).json()) as Standing;
     expect(earned(keyed.entry.achievements)).toStrictEqual(['manners']);
     // When the search fails, an entry keeps what it had, since a merge does not come undone.
     const dan = await w.upload('token-dan', { ...KIND, name: 'Dan' });

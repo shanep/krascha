@@ -679,7 +679,7 @@ export async function readBoard(
 
 export type SaveResult =
   | { readonly ok: true; readonly standing: Standing }
-  | { readonly ok: false; readonly reason: 'limit' | 'new-entries' };
+  | { readonly ok: false; readonly reason: 'limit' | 'new-entries' | 'name-taken' };
 
 /**
  * Saves an upload over the last one from the same machine and adds up the
@@ -939,6 +939,24 @@ async function judge(
   return false;
 }
 
+/**
+ * Whether a name belongs to someone else checked with GitHub, as their login
+ * or the name on their entry, so an entry without GitHub cannot pass for them.
+ */
+async function nameTaken(database: D1Database, owner: string, name: string): Promise<boolean> {
+  if (name === '') {
+    return false;
+  }
+  const taken = await database
+    .prepare(
+      `SELECT 1 FROM scores WHERE verified = 1 AND owner <> ?
+       AND (lower(github) = lower(?) OR lower(name) = lower(?)) LIMIT 1`,
+    )
+    .bind(owner, name, name)
+    .first();
+  return taken !== null;
+}
+
 export async function saveScore(database: D1Database, save: Save): Promise<SaveResult> {
   const { owner, upload, now, newId } = save;
   const day = utcDay(now);
@@ -950,6 +968,9 @@ export async function saveScore(database: D1Database, save: Save): Promise<SaveR
   const uploadsToday = sameDay ? number_(found, 'uploads_today') : 0;
   if (uploadsToday >= UPLOADS_PER_DAY) {
     return { ok: false, reason: 'limit' };
+  }
+  if (!owner.verified && (await nameTaken(database, owner.id, cleanName(upload.name)))) {
+    return { ok: false, reason: 'name-taken' };
   }
   if (found === null && !owner.verified && !(await claimNewEntry(database, save.origin, day))) {
     return { ok: false, reason: 'new-entries' };
