@@ -2,6 +2,7 @@
 // prompt files through this one shape.
 
 import type { Prompt } from '../reputation/prompts.js';
+import type { ToolId } from '../shared/tools.js';
 
 /** A file that holds prompts the user typed. */
 export interface PromptFile {
@@ -15,6 +16,8 @@ export interface PromptFile {
   readonly kind: 'transcript' | 'history';
   /** The session a transcript belongs to. Null for a history file. */
   readonly sessionId: string | null;
+  /** The agent whose file this is. */
+  readonly tool?: ToolId;
 }
 
 /** What one prompt file holds. */

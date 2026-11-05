@@ -129,7 +129,12 @@ function sessionRows(
 
 export type TokenCounts = Pick<
   ReputationSummary,
-  'tokensPerDay' | 'lifetimeTokens' | 'copilotTokensPerDay' | 'copilotLifetimeTokens'
+  | 'tokensPerDay'
+  | 'lifetimeTokens'
+  | 'copilotTokensPerDay'
+  | 'copilotLifetimeTokens'
+  | 'antigravityTokensPerDay'
+  | 'antigravityLifetimeTokens'
 >;
 
 export function summarize(

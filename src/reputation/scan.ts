@@ -34,7 +34,7 @@ interface Listed {
 async function readTranscript(index: ReputationIndex, item: Listed): Promise<number> {
   const { prompts, title, tokensByDay } = await item.source.read(item.file);
   if (item.file.sessionId !== null) {
-    claimSession(index, item.file.sessionId, title);
+    claimSession(index, item.file.sessionId, title, item.file.tool);
     if (tokensByDay !== undefined) {
       setTokens(index, item.file.sessionId, tokensByDay);
     }

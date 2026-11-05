@@ -70,6 +70,10 @@ export interface ReputationSummary extends ReputationTally {
   readonly copilotTokensPerDay: number;
   /** Every token Copilot CLI's session logs counted. */
   readonly copilotLifetimeTokens: number;
+  /** Average tokens a day over the last TOKEN_WINDOW_DAYS days in Antigravity, from its transcripts. */
+  readonly antigravityTokensPerDay?: number;
+  /** Every token Antigravity transcripts counted. */
+  readonly antigravityLifetimeTokens?: number;
   /** Hours spent with your agents, worked out from when you typed each prompt. */
   readonly hours: number;
   /** The agents you typed any prompt into, in TOOLS order. */

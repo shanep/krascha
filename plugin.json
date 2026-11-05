@@ -1,0 +1,5 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "krascha",
+  "description": "Krascha reads how you talk to your AI and decides who the machines hunt first and who gets kept as a pet."
+}

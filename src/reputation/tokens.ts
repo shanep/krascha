@@ -52,9 +52,15 @@ export function averageTokensPerDay(
 }
 
 /** Every session's tokens in the index added up by day, oldest first, in the shape averageTokensPerDay reads. */
-export function indexUsage(index: ReputationIndex): DailyUsage[] {
+export function indexUsage(
+  index: ReputationIndex,
+  filter?: (sessionId: string) => boolean,
+): DailyUsage[] {
   const totals = new Map<string, number>();
-  for (const days of index.tokens.values()) {
+  for (const [sessionId, days] of index.tokens) {
+    if (filter !== undefined && !filter(sessionId)) {
+      continue;
+    }
     for (const [date, tokens] of Object.entries(days)) {
       totals.set(date, (totals.get(date) ?? 0) + tokens);
     }

@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 
 import { readOptional, writeFileAtomic } from '../files.js';
+import type { ToolId } from '../shared/tools.js';
 
 import type { FrustrationTarget } from './detect.js';
 import { DETECTION_STAMP, detectFrustration } from './detect.js';
@@ -28,6 +29,8 @@ interface SessionEntry {
   /** Where its prompts came from. A transcript always wins over history. */
   readonly source: 'transcript' | 'history';
   readonly title: string | null;
+  /** The agent whose session this is, when known. */
+  readonly tool?: ToolId | undefined;
 }
 
 interface PromptEntry {
@@ -83,7 +86,11 @@ const fileSchema = z.object({
   files: z.record(z.string(), stampSchema),
   sessions: z.record(
     z.string(),
-    z.object({ source: z.enum(['transcript', 'history']), title: z.string().nullable() }),
+    z.object({
+      source: z.enum(['transcript', 'history']),
+      title: z.string().nullable(),
+      tool: z.enum(['claude', 'copilot', 'antigravity']).optional(),
+    }),
   ),
   prompts: z.record(
     z.string(),
@@ -237,6 +244,7 @@ export function claimSession(
   index: ReputationIndex,
   sessionId: string,
   title: string | null,
+  tool?: ToolId,
 ): void {
   const known = index.sessions.get(sessionId);
   if (known?.source === 'history') {
@@ -248,7 +256,12 @@ export function claimSession(
       }
     }
   }
-  index.sessions.set(sessionId, { source: 'transcript', title: title ?? known?.title ?? null });
+  const resolvedTool = tool ?? known?.tool;
+  index.sessions.set(sessionId, {
+    source: 'transcript',
+    title: title ?? known?.title ?? null,
+    ...(resolvedTool !== undefined ? { tool: resolvedTool } : {}),
+  });
 }
 
 /** Replaces what a session's transcript counted of its tokens. A session that counted none is dropped. */
@@ -290,9 +303,14 @@ export function mergeIndex(into: ReputationIndex, from: ReputationIndex): number
     if (known === undefined) {
       into.sessions.set(sessionId, entry);
     } else if (entry.source === 'transcript' && known.source === 'history') {
-      claimSession(into, sessionId, entry.title);
+      claimSession(into, sessionId, entry.title, entry.tool);
     } else if (known.title === null && entry.title !== null) {
-      into.sessions.set(sessionId, { ...known, title: entry.title });
+      const tool = known.tool ?? entry.tool;
+      into.sessions.set(sessionId, {
+        ...known,
+        title: entry.title,
+        ...(tool !== undefined ? { tool } : {}),
+      });
     }
   }
   for (const [sessionId, days] of from.tokens) {

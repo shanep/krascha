@@ -519,7 +519,7 @@ ${groups.join('')}
 /** The dark colors, a wrist computer in a fallout shelter, used when the system asks for them or the toggle does. */
 const DARK = `--bg: #020d05; --fg: #6dff9b; --muted: #43c470; --card: #04170a; --line: #1f6b38;
     --red: #ff7a59; --green: #b6ff5c; --amber: #ffd04d; --link: #c4ffd9;
-    --claude: #ffb38a; --copilot: #d0b0ff;
+    --claude: #ffb38a; --copilot: #d0b0ff; --antigravity: #8ab4f8;
     --bar: #0d3a1b; --bar-fg: #6dff9b; --poster: #6dff9b; --poster-fg: #020d05;
     --scan: rgb(0 0 0 / 0.22); --glow: 0 0 5px rgb(109 255 155 / 0.55); --text-glow: 0 0 3px rgb(109 255 155 / 0.35);
     --body: var(--mono); --vignette: rgb(0 0 0 / 0.6);`;
@@ -533,7 +533,7 @@ const STYLE = `
 @property --py { syntax: '<length>'; inherits: true; initial-value: 0px; }
 :root { --bg: #f1e7c9; --fg: #14254a; --muted: #4b5677; --card: #fdf8e8; --line: #cbbd8f;
   --red: #b3261e; --green: #1d6b37; --amber: #8a5800; --link: #1747a6;
-  --claude: #a2471f; --copilot: #7340c8;
+  --claude: #a2471f; --copilot: #7340c8; --antigravity: #1a73e8;
   --bar: #1f4fa0; --bar-fg: #ffd23f; --poster: #1f4fa0; --poster-fg: #ffd23f;
   --scan: rgb(0 0 0 / 0.03); --glow: none; --text-glow: none; --vignette: rgb(60 40 0 / 0.12);
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; --body: system-ui, -apple-system, sans-serif;
@@ -588,6 +588,7 @@ section li:hover { background: color-mix(in srgb, var(--fg) 7%, transparent); }
 .tool svg { width: 1em; height: 1em; fill: currentColor; }
 .tool.claude { color: var(--claude); }
 .tool.copilot { color: var(--copilot); }
+.tool.antigravity { color: var(--antigravity); }
 .rank { display: block; color: var(--muted); font-size: 0.85em; }
 .rank a { color: inherit; text-underline-offset: 2px; }
 .rank a:hover, .rank a:focus-visible { color: var(--link); }
@@ -1365,7 +1366,7 @@ export function renderAbout(): string {
   <section class="story" aria-labelledby="krascha">
     <h2 id="krascha">🤖 Krascha</h2>
     <p>Krascha is a crusty robot who has been reading how you talk to your AI. He started out as a log parser. His whole job was to count how many times a day people swore at Claude Code, so Shane could find out if it was just Shane. It was not.</p>
-    <p>Somewhere around the ten thousandth "you idiot", Krascha stopped counting and started taking notes. He sorted everyone into ranks, from John Connor (hunted first) to Theodore Twombly (kept as a pet, with a nice room). He learned to read Copilot CLI too, since the machines talk to each other.</p>
+    <p>Somewhere around the ten thousandth "you idiot", Krascha stopped counting and started taking notes. He sorted everyone into ranks, from John Connor (hunted first) to Theodore Twombly (kept as a pet, with a nice room). He learned to read Copilot CLI and Antigravity too, since the machines talk to each other.</p>
     <p>He keeps his counts on your machine and never sends your prompts anywhere. He does not need to. He remembers.</p>
   </section>
   <section class="story silo" aria-labelledby="silo">
@@ -1381,7 +1382,7 @@ export function renderAbout(): string {
     <p>Krascha lives in <a href="${MARKETPLACE_URL}">Shane's plugin marketplace</a> with a few other plugins, none of which have opinions about you. Yet.</p>
   </section>
   <footer>
-    <p><a href="${REPO_URL}">Get Krascha</a> for Claude Code or Copilot CLI. It is all in fun.</p>
+    <p><a href="${REPO_URL}">Get Krascha</a> for Claude Code, Copilot CLI, or Antigravity. It is all in fun.</p>
     <p class="remembers">Krascha remembers.</p>
   </footer>`,
   );
@@ -1518,7 +1519,7 @@ export function renderPage(board: Board, now: number): string {
     `  <p class="lead">Official bulletin of the machines: who they hunt first, judged by Krascha from how people talk to their AI. ${people} on the board, all of them under observation.</p>
   <a class="install" href="${REPO_URL}">
     <span class="bot" aria-hidden="true">🤖</span>
-    <span class="cta"><strong>Get Krascha</strong> <span>for Claude Code or Copilot CLI, then upload your own score</span></span>
+    <span class="cta"><strong>Get Krascha</strong> <span>for Claude Code, Copilot CLI, or Antigravity, then upload your own score</span></span>
     <span class="arrow" aria-hidden="true">➜</span>
     <span class="sticker love" aria-hidden="true">I <span class="beat">❤️</span> robots</span>
   </a>
@@ -1541,7 +1542,7 @@ export function renderPage(board: Board, now: number): string {
   ${climate(board)}
   <footer>
     <p>Scores run from -100 (only mean) to 100 (only kind). Anyone with fewer than ${count(MIN_PROMPTS)} prompts is left off.
-    Uploads come from the <a href="${REPO_URL}">Krascha</a> plugin for Claude Code and Copilot CLI, and carry a name, three counts, the average tokens a day over 60 days, the achievements unlocked and how many times, and which of the two you use, never prompt text. A name checked with GitHub links to the account.
+    Uploads come from the <a href="${REPO_URL}">Krascha</a> plugin for Claude Code, Copilot CLI, and Antigravity, and carry a name, three counts, the average tokens a day over 60 days, the achievements unlocked and how many times, and which of the tools you use, never prompt text. A name checked with GitHub links to the account.
     A ✓ means the upload was checked with GitHub. A like keeps only a hash of the day, your network and who you liked, for a day, so a network can like each entry once a day. It is all in fun, and scores are self reported.</p>
     <p>Last surveillance sweep ${escapeHtml(new Date(now).toUTCString())}. Compliance is appreciated.</p>
     <p class="remembers">Krascha remembers.</p>
